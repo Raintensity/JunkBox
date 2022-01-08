@@ -1,0 +1,20 @@
+{
+  "name": "junkbox",
+  "version": "1.0.0",
+  "description": "My junkbox.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "ts-node ./.script/ts-build.ts"
+  },
+  "author": "Raintensity",
+  "license": "MIT",
+  "dependencies": {
+    "@rollup/plugin-typescript": "^8.3.0",
+    "@types/node": "^17.0.8",
+    "rollup": "^2.63.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "terser": "^5.10.0",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.4"
+  }
+}
