@@ -10,7 +10,7 @@ const browserTranspileOptions: ts.TranspileOptions = {
 	compilerOptions: {
 		target: ts.ScriptTarget.ES2020,
 		module: ts.ModuleKind.ESNext,
-		strict: true,
+		strict: true
 	}
 };
 
@@ -18,18 +18,18 @@ const nodeTranspileOptions: ts.TranspileOptions = {
 	compilerOptions: {
 		target: ts.ScriptTarget.ES2020,
 		module: ts.ModuleKind.CommonJS,
-		strict: true,
+		strict: true
 	}
 };
 
-const options: MinifyOptions = {
+const minifyOptions: MinifyOptions = {
 	format: { comments: false }
 };
 
 const createInputOption = (): RollupOptions => {
 	return {
 		plugins: [
-			terser({ format: { comments: false } }),
+			terser(minifyOptions),
 			typescript({ module: "esnext" })
 		]
 	}
@@ -53,8 +53,10 @@ const packaging = async (path: string): Promise<String | null> => {
 		bundle.close();
 		return null;
 	}
+
 	const result = await bundle.generate(outputOption);
 	bundle.close();
+
 	if (!result.output.length) {
 		throw new Error("Failed packaging");
 	}
@@ -73,36 +75,36 @@ const build = async () => {
 		const fileName = ent.name.slice(0, ent.name.lastIndexOf("."));
 		console.log("Transpiling: " + ent.name);
 
-		let file = await fsp.readFile(tsDir + "/" + ent.name, "utf-8");
-		let result: ts.TranspileOutput | null, outName: string;
+		let str = await fsp.readFile(tsDir + "/" + ent.name, "utf-8");
+		let tsOut: ts.TranspileOutput | null, outName: string;
 
 		// Transpile
 		outName = "/" + fileName + ".js";
 		// For node
-		result = ts.transpileModule(file, nodeTranspileOptions);
-		await fsp.writeFile(nodeOutDir + outName, result.outputText);
+		tsOut = ts.transpileModule(str, nodeTranspileOptions);
+		await fsp.writeFile(nodeOutDir + outName, tsOut.outputText);
 		// For browser
-		result = ts.transpileModule(file, browserTranspileOptions);
-		await fsp.writeFile(browserOutDir + outName, result.outputText);
+		tsOut = ts.transpileModule(str, browserTranspileOptions);
+		await fsp.writeFile(browserOutDir + outName, tsOut.outputText);
 
 		// Clean
-		file = result.outputText;
-		result = null;
+		str = tsOut.outputText;
+		tsOut = null;
 
 		// Minify
-		let minified: MinifyOutput | null = await minify(file, options);
+		let minOut: MinifyOutput | null = await minify(str, minifyOptions);
 		outName = "/" + fileName + ".min.js";
-		await fsp.writeFile(browserOutDir + outName, minified.code ?? "");
+		await fsp.writeFile(browserOutDir + outName, minOut.code ?? "");
 
 		// Clean
-		file = "";
-		minified = null;
+		str = "";
+		minOut = null;
 
 		// Packaging
-		let packed = await packaging(tsDir + "/" + ent.name);
-		if (packed !== null) {
+		let packOut = await packaging(tsDir + "/" + ent.name);
+		if (packOut !== null) {
 			outName = "/" + fileName + ".pack.js";
-			await fsp.writeFile(browserOutDir + outName, packed);
+			await fsp.writeFile(browserOutDir + outName, packOut);
 		}
 	}
 
