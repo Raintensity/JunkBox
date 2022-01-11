@@ -32,4 +32,4 @@ jobs:
           git config --local user.email ${{ secrets.GIT_EMAIL }}
           git add .
           git commit -m "[Auto] Push: $(date '+%Y/%m/%d %H:%M:%S')"
-          git push origin master
+          git push origin main
