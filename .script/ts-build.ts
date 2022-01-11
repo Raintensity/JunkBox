@@ -1,4 +1,4 @@
-import { promises as fsp } from "fs";
+import { Dirent, promises as fsp } from "fs";
 import ts from "typescript";
 import { minify, MinifyOptions, MinifyOutput } from "terser";
 import { OutputOptions, rollup, RollupOptions } from "rollup";
@@ -26,89 +26,129 @@ const minifyOptions: MinifyOptions = {
 	format: { comments: false }
 };
 
-const createInputOption = (): RollupOptions => {
-	return {
-		plugins: [
-			terser(minifyOptions),
-			typescript({ module: "esnext" })
-		]
-	}
+const inputOption: RollupOptions = {
+	plugins: [
+		terser(minifyOptions),
+		typescript({ module: "esnext" })
+	]
 };
 
 const outputOption: OutputOptions = {};
 
 // Defs
 const pwd = process.cwd();
-const tsDir = pwd + "/library/typescript"
+const tsDir = pwd + "/library/typescript";
+const tsComDir = tsDir + "/common";
+const tsBrowserDir = tsDir + "/browser";
+const tsNodeDir = tsDir + "/node";
 const browserOutDir = pwd + "/library/javascript/ts-browser";
 const nodeOutDir = pwd + "/library/javascript/ts-node";
 
-// Packaging func
-const packaging = async (path: string): Promise<String | null> => {
-	const inputOption = createInputOption();
-	inputOption.input = path;
-	const bundle = await rollup(inputOption);
+const getFilePath = (name: string, type: BUILD_TYPE) => {
+	const dir = type === 0 ? "common" : type === 1 ? "node" : "browser";
+}
 
-	if (bundle.watchFiles.length < 2) {
-		bundle.close();
-		return null;
+const BUILD_TYPE = {
+	COMMON: 0,
+	NODE: 1,
+	BROWSER: 2
+} as const;
+type BUILD_TYPE = typeof BUILD_TYPE[keyof typeof BUILD_TYPE];
+
+// Main func
+const main = async () => {
+	const options: { withFileTypes: true } = { withFileTypes: true };
+
+	// Scan common dir
+	console.log("Scanning: " + tsComDir);
+	const comDir = await fsp.readdir(tsComDir, options);
+	for (const ent of comDir) {
+		await build(ent, tsComDir, BUILD_TYPE.COMMON);
 	}
 
-	const result = await bundle.generate(outputOption);
-	bundle.close();
-
-	if (!result.output.length) {
-		throw new Error("Failed packaging");
+	// Scan browser dir
+	console.log("Scanning: " + tsBrowserDir);
+	const browserDir = await fsp.readdir(tsBrowserDir, options);
+	for (const ent of browserDir) {
+		await build(ent, tsBrowserDir, BUILD_TYPE.BROWSER);
 	}
-	return result.output[0].code;
-};
 
-// Build func
-const build = async () => {
-	// Scan dir
-	console.log("Scanning: " + tsDir);
-	const tsDirEnt = await fsp.readdir(tsDir, { withFileTypes: true });
-
-	for (const ent of tsDirEnt) {
-		if (ent.isDirectory()) continue;
-		if (ent.name.split(".").pop() !== "ts") continue;
-		const fileName = ent.name.slice(0, ent.name.lastIndexOf("."));
-		console.log("Transpiling: " + ent.name);
-
-		let str = await fsp.readFile(tsDir + "/" + ent.name, "utf-8");
-		let tsOut: ts.TranspileOutput | null, outName: string;
-
-		// Transpile
-		outName = "/" + fileName + ".js";
-		// For node
-		tsOut = ts.transpileModule(str, nodeTranspileOptions);
-		await fsp.writeFile(nodeOutDir + outName, tsOut.outputText);
-		// For browser
-		tsOut = ts.transpileModule(str, browserTranspileOptions);
-		await fsp.writeFile(browserOutDir + outName, tsOut.outputText);
-
-		// Clean
-		str = tsOut.outputText;
-		tsOut = null;
-
-		// Minify
-		let minOut: MinifyOutput | null = await minify(str, minifyOptions);
-		outName = "/" + fileName + ".min.js";
-		await fsp.writeFile(browserOutDir + outName, minOut.code ?? "");
-
-		// Clean
-		str = "";
-		minOut = null;
-
-		// Packaging
-		let packOut = await packaging(tsDir + "/" + ent.name);
-		if (packOut !== null) {
-			outName = "/" + fileName + ".pack.js";
-			await fsp.writeFile(browserOutDir + outName, packOut);
-		}
+	// Scan node dir
+	console.log("Scanning: " + tsNodeDir);
+	const nodeDir = await fsp.readdir(tsNodeDir, options);
+	for (const ent of nodeDir) {
+		await build(ent, tsNodeDir, BUILD_TYPE.NODE);
 	}
 
 	console.log("Done.");
 };
 
-build();
+// Build func
+const build = async (ent: Dirent, path: string, type: BUILD_TYPE) => {
+	if (ent.isDirectory()) return;
+	if (ent.name.split(".").pop() !== "ts") return;
+	const fileName = ent.name.slice(0, ent.name.lastIndexOf("."));
+	console.log("Transpiling: " + ent.name);
+
+	let str = await fsp.readFile(path + "/" + ent.name, "utf-8");
+
+	// Transpile for Node
+	if (type === BUILD_TYPE.COMMON || type === BUILD_TYPE.NODE) {
+		const tsOut = ts.transpileModule(str, nodeTranspileOptions);
+		const outName = "/" + fileName + ".js";
+		await fsp.writeFile(nodeOutDir + outName, tsOut.outputText);
+	}
+
+	// Transpile for browser
+	if (type === BUILD_TYPE.COMMON || type === BUILD_TYPE.BROWSER) {
+		let tsOut: ts.TranspileOutput | null,
+			minOut: MinifyOutput | null,
+			outName: string;
+
+		// Transpile
+		tsOut = ts.transpileModule(str, browserTranspileOptions);
+		outName = "/" + fileName + ".js";
+		await fsp.writeFile(browserOutDir + outName, tsOut.outputText);
+
+		str = tsOut.outputText;
+		tsOut = null;
+
+		// Minify
+		minOut = await minify(str, minifyOptions);
+		outName = "/" + fileName + ".min.js";
+		await fsp.writeFile(browserOutDir + outName, minOut.code ?? "");
+
+		str = "";
+		minOut = null;
+
+		// Packaging
+		let packOut = await packaging(path + "/" + ent.name);
+		if (packOut !== null) {
+			outName = "/" + fileName + ".pack.js";
+			await fsp.writeFile(browserOutDir + outName, packOut);
+		}
+	}
+};
+
+// Packaging func
+const packaging = async (path: string): Promise<String | null> => {
+	inputOption.input = path;
+	const bundle = await rollup(inputOption);
+
+	if (bundle.watchFiles.length < 2) {
+		bundle.close();
+		inputOption.input = undefined;
+		return null;
+	}
+
+	const result = await bundle.generate(outputOption);
+	bundle.close();
+	inputOption.input = undefined;
+
+	if (!result.output.length) {
+		throw new Error("Failed packaging.");
+	}
+	return result.output[0].code;
+};
+
+main();

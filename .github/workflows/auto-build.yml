@@ -3,7 +3,8 @@ name: Auto build
 on:
   push:
     paths:
-      - 'library/typescript/*.ts'
+      - 'library/typescript/**.ts'
+      - '.script/ts-build.ts'
 
 jobs:
   auto-build:
