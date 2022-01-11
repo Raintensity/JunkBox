@@ -44,10 +44,6 @@ const tsNodeDir = tsDir + "/node";
 const browserOutDir = pwd + "/library/javascript/ts-browser";
 const nodeOutDir = pwd + "/library/javascript/ts-node";
 
-const getFilePath = (name: string, type: BUILD_TYPE) => {
-	const dir = type === 0 ? "common" : type === 1 ? "node" : "browser";
-}
-
 const BUILD_TYPE = {
 	COMMON: 0,
 	NODE: 1,
