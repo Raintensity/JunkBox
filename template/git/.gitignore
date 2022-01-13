@@ -1,0 +1,18 @@
+# Global
+*.log
+*.tmp
+
+# Windows
+Thumbs.db
+[Dd]esktop.ini
+*.lnk
+
+# Mac
+.DS_Store
+._*
+
+# Linux
+*~
+
+# Node
+node_modules/
