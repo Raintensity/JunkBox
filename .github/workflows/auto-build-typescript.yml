@@ -1,0 +1,35 @@
+name: Auto build (Typescript)
+
+on:
+  push:
+    paths:
+      - 'library/typescript/**.ts'
+      - '.script/ts-build.ts'
+
+jobs:
+  auto-build-typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Install npm modules
+        run: npm ci
+
+      - name: Build
+        run: npm run build:ts
+
+      - name: Count changes
+        id: count
+        run: |
+          git add -N .
+          echo "::set-output name=count::$(git diff --name-only | wc -l)"
+
+      - name: Git commit
+        if: steps.count.outputs.count > 0
+        run: |
+          git config --local user.name ${{ secrets.GIT_USER }}
+          git config --local user.email ${{ secrets.GIT_EMAIL }}
+          git add .
+          git commit -m "[Auto] Push: $(date '+%Y/%m/%d %H:%M:%S')"
+          git push origin main

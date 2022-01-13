@@ -1,13 +1,13 @@
-name: Auto build
+name: Auto build (CSS)
 
 on:
   push:
     paths:
-      - 'library/typescript/**.ts'
-      - '.script/ts-build.ts'
+      - 'template/css/**.css'
+      - '.script/css-build.ts'
 
 jobs:
-  auto-build:
+  auto-build-css:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -17,7 +17,7 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build
+        run: npm run build:css
 
       - name: Count changes
         id: count

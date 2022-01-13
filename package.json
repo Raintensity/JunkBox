@@ -4,13 +4,17 @@
   "description": "My junkbox.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "ts-node ./.script/ts-build.ts"
+    "build": "npm run build:ts && npm run build:css",
+    "build:ts": "ts-node ./.script/ts-build.ts",
+    "build:css": "ts-node ./.script/css-build.ts"
   },
   "author": "Raintensity",
   "license": "MIT",
   "dependencies": {
     "@rollup/plugin-typescript": "^8.3.0",
+    "@types/clean-css": "^4.2.5",
     "@types/node": "^17.0.8",
+    "clean-css": "^5.2.2",
     "rollup": "^2.63.0",
     "rollup-plugin-terser": "^7.0.2",
     "terser": "^5.10.0",
