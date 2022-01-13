@@ -1,0 +1,52 @@
+html,
+body {
+	height: 100%;
+}
+
+html {
+	box-sizing: border-box;
+	-webkit-tap-highlight-color: transparent;
+}
+
+body {
+	font-family: "Hiragino Sans", "Meiryo", sans-serif;
+	overflow-wrap: break-word;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: inherit;
+	margin: 0;
+}
+
+#wrapper {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+}
+
+@supports (-webkit-touch-callout: none) {
+	#wrapper {
+		min-height: -webkit-fill-available;
+	}
+}
+
+#wrapper > main {
+	flex: 1;
+	overflow-x: hidden;
+}
+
+img {
+	width: auto;
+	height: auto;
+	max-width: 100%;
+}
+
+iframe {
+	border: 0;
+}
+
+input:-webkit-autofill {
+	transition-delay: background-color 99999s;
+}
