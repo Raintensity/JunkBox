@@ -6,7 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run build:ts && npm run build:css",
     "build:ts": "ts-node ./.script/ts-build.ts",
-    "build:css": "ts-node ./.script/css-build.ts"
+    "build:css": "ts-node ./.script/css-build.ts",
+    "server": "ts-node ./program/typescript/node-easy-server.ts"
   },
   "author": "Raintensity",
   "license": "MIT",
