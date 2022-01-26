@@ -4,7 +4,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _a, _DateEx_formatPriority, _DateEx_patterns;
-import { NumberUtil } from "./util";
+import { NumberUtil } from "./util.js";
 export class DateEx extends Date {
     toISOString(offset) {
         if (!offset)
