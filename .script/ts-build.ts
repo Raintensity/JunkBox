@@ -51,6 +51,8 @@ const BUILD_TYPE = {
 } as const;
 type BUILD_TYPE = typeof BUILD_TYPE[keyof typeof BUILD_TYPE];
 
+const importRegEx = /(import .* from\s+['"])(.*)(?=['"])/g;
+
 // Main func
 const main = async () => {
 	const options: { withFileTypes: true } = { withFileTypes: true };
@@ -103,11 +105,17 @@ const build = async (ent: Dirent, path: string, type: BUILD_TYPE) => {
 
 		// Transpile
 		tsOut = ts.transpileModule(str, browserTranspileOptions);
-		outName = "/" + fileName + ".js";
-		await fsp.writeFile(browserOutDir + outName, tsOut.outputText);
-
 		str = tsOut.outputText;
 		tsOut = null;
+
+		// Resolve import path
+		str = str.replace(importRegEx, (matchStr, ...args: string[]) => {
+			if (args?.length < 2) return matchStr;
+			if (!args[1].startsWith("./")) return matchStr;
+			return args[0] + args[1] + ".js";
+		});
+		outName = "/" + fileName + ".js";
+		await fsp.writeFile(browserOutDir + outName, str);
 
 		// Minify
 		minOut = await minify(str, minifyOptions);
