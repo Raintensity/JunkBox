@@ -2,7 +2,7 @@
 
 Build run esbuild on command line.
 
-Require esvuild for `PATH`
+Require esbuild for `PATH`
 
 ## Usage
 
