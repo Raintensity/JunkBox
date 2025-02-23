@@ -1,0 +1,16 @@
+{
+  "name": "template-preact-minimal",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "node ./build/build",
+    "dev": "node ./build/dev"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "preact": "^10.26.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

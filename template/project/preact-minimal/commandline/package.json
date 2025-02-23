@@ -1,0 +1,12 @@
+{
+  "name": "template-preact-minimal",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "esbuild ./src/main.tsx --outdir=dest --bundle --minify",
+    "dev": "esbuild ./src/main.tsx --outdir=dest --bundle --minify --watch --servedir=dest"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "preact": "^10.26.2"
+  }
+}
